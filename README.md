@@ -160,7 +160,8 @@ caches, etc.
 ### How do I use xdebug?
 
 - Web: Xdebug should work by default when you have the
-  [Xdebug helper](https://chrome.google.com/webstore/detail/xdebug-helper/eadndfjplgieldjbigjakmdgkmoaaaoc)
+  [Xdebug helper](https://chrome.google.com/webstore/de
+  /xdebug-helper/eadndfjplgieldjbigjakmdgkmoaaaoc)
   installed + PHPStorm is listening to connections.
 - Cli: Use
   `XDEBUG_CONFIG="" php -c /usr/local/etc/php/7.2/php-xdebug.ini bin/magento`
@@ -176,7 +177,7 @@ caches, etc.
 ### Where can I find logs?
 
 - For all other services, start `ctop` and press `<-` on your keyboard.
-- phplogs: tail -f /usr/local/var/log/php\* (will probably be empty as it will
+- phplogs: `tail -f /usr/local/var/log/php\*` (will probably be empty as it will
   only output true errors)
 
 ### How do I set up urls/https?
