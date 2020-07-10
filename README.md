@@ -7,21 +7,20 @@ penalties.
 
 ## Reasoning
 
-Docker is easy, docker scales, we love docker, but docker's volume mounting is
+Docker is easy, docker scales, we love Docker, but docker's volume mounting is
 slow, we can't have slow.
 
 The problem with all the docker devboxes is that they require running php inside
-a vm. The problem with php in a vm is that files need to be available in the vm,
-but it also also need to have files outside the vm, because programs like
+a vm. The problem with php in a VM is that files need to be available in the VM,
+but it also needs to have files outside the VM, because programs like
 PHPStorm and others do not accept network drives.
 
 Sync is slower than no sync. [docker-sync](http://docker-sync.io/),
-[nfs](https://docs.docker.com/v17.12/datacenter/dtr/2.1/guides/configure/use-nfs/),
 [unison](https://www.cis.upenn.edu/~bcpierce/unison/),
 [mutagen](https://mutagen.io/) offer good sync solutions, but always slower than
 no sync.
 
-Also syncs require additional HDD space and additional mental overhead: Are my
+Hovever, syncs require additional HDD space and additional mental overhead: Are my
 files synced?, Is my sync broken? Are there sync conflicts? Why did that file
 appear here? Where should I execute my php cli scripts? Where should I run node
 cli? Why is my system slow? Sync is bad.
@@ -77,7 +76,7 @@ locally.
 
 ```bash
 # Cleans existing brew php (will not remove Valet stuff) + installs php on OSX!
-curl -s https://raw.githubusercontent.com/ho-nl/docker-development-box/master/install.sh?token=AAJP2AECWY7UWCOGGX7EDS26LEH4G | bash -s -- -i
+curl -s https://raw.githubusercontent.com/ho-nl/docker-development-box/master/install.sh | bash -s -- -i
 ```
 
 It will (re)install multiple php-fpm services, one for each version (port: 9072,
@@ -92,20 +91,33 @@ php -v
 ```
 
 Should now show the right version. If it doesn't there might be still be a
-version linked or your ~/.bash_profile should be cleaned up.
+version linked or your ~/.bash_profile should be cleaned up or you need to reopen your CLI. 
 
 ### Install docker
 
-1. Install [docker for mac](https://docs.docker.com/docker-for-mac/).
-2. Exclude `~/Library/Containers` from your backups
-3. `brew install ctop`: `htop` for docker.
-4. Set CPU's to 6 and memory to 8GB (should me _more_ than enough)
+1. Install [docker for mac 2.1.0.1](https://docs.docker.com/docker-for-mac/release-notes/#docker-desktop-community-2101).
+2. Start Docker
+3. Exclude `~/Library/Containers` from your backups
+4. `brew install ctop`: can be used to show container metrics.
+5. Open Docker -> Preferences  
+6. Set memory to 3-4 GB 
+
+Note: Newer versions of Docker for Mac have network latency issues, see
+[#10](https://github.com/ho-nl/docker-development-box/issues/10#issuecomment-639371400)
+
+### Install nfs
+
+1. `sudo nano /etc/exports` add: `/System/Volumes/Data -alldirs -mapall=501:20 localhost`
+2. `sudo nano /etc/nfs.conf` add: `nfs.server.mount.require_resv_port = 0`
+3. `sudo nfsd restart`
+
+[Based on this article](https://www.jeffgeerling.com/blog/2020/revisiting-docker-macs-performance-nfs-volumes)
 
 ### Install local certificate
 
 - Download the raw .pem file (Open Raw, then CMD + S):
 - [./hitch/\*.localhost.reachdigital.io.pem](./hitch/*.localhost.reachdigital.io.pem)
-- Open keychain.app, add this file.
+- Open keychain.app, add this file (you can drag and drop files in the keychain app).
 - Open certificate and trust the certificate.
 
 You are now done with the global installation 🎉
@@ -113,13 +125,21 @@ You are now done with the global installation 🎉
 ## Project installation
 
 - Install this in the project
-  `composer require --dev reach-digital/docker-devbox`
+  `composer require reach-digital/docker-devbox`
 - Install `static-content-deploy`
   [patch](patch/static-content-deploy.md) and remove
   `pub/static/frontend/*`.
 - Disable services you don't need in `docker-compose.yml` (required: `hitch`,
   `varnish`, `nginx` and `db`).
 - Commit the `docker-compose.yml` file to prevent future accidental changes.
+- Update or create an env.php file and with the following info
+    `'host' => '127.0.0.1',
+     'dbname' => 'magento',
+     'username' => 'magento',
+     'password' => 'magento',
+    `
+- Create a setup script for the base-urls and run it.
+
 
 ## Usage
 
@@ -191,7 +211,7 @@ php bin/magento setup:config:set --session-save=redis --session-save-redis-db=2 
 ```
 
 How do I flush Redis directly when `bin/magento` is broken?
-`composer down && composer up -d`
+`docker-compose down && docker-compose up -d`
 
 ### How do I set up Elastic Search?
 
@@ -244,3 +264,10 @@ configuration file there.
 ## How do I restart php-fpm?
 
 `pkill php-fpm`
+
+## Commits
+
+Commits are validated with https://github.com/conventional-changelog/commitlint
+
+Gittower: Gittower doesn't properly read your PATH variable and thus commit
+validation doesn't work. Use `gittower .` to open this repo.
